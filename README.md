@@ -2,9 +2,15 @@ This project can reproduce problems by using RestTemplate and RestClient during 
 
 The project consists of a Spring Boot app that provides three HTTP endpoints. These endpoints use a RestTemplate, RestClient, and WebClient bean to send HTTP requests to `https://httpbin.org/uuid`. 
 
-To reproduce the problem, clone the project from GitHub and run the test script `tests.bash`. The test script calls all three endpoints during the warmup, i.e., before the `jcmd myapp.jar JDK.checkpoint` command is executed.
+To reproduce the problem in a Linux environment, clone the project from GitHub and run the test script `tests.bash`. The test script calls all three endpoints during the warmup, i.e., before the `jcmd myapp.jar JDK.checkpoint` command is executed.
 
-Commands:
+First ensure that a Java 21 JDK with CRaC support is used, e.g. by running a command like:
+
+```
+sdk use java 21.0.2.crac-zulu
+```
+
+Commands to reproduce the problem:
 
 ```
 git clone https://github.com/magnus-larsson/ml-spring-http-client-crac-error-demo.git
