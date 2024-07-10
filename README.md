@@ -13,7 +13,7 @@ cd ml-spring-http-client-crac-error-demo
 ./tests.bash
 ```
 
-This will return in errors like:
+This will result in open socket related errors like:
 
 ```
 An exception during a checkpoint operation:
@@ -50,10 +50,9 @@ jdk.internal.crac.mirror.CheckpointException
 		at java.base/jdk.internal.crac.mirror.Core.checkpointRestoreInternal(Core.java:299)
 ```
 
-To avoid these errors, remove the following calls to the RestTemplate and RestClient in tests.bash:
+To avoid these errors, remove the following calls to the RestTemplate and RestClient endpoints in `tests.bash`:
 
 ```
-
 curl localhost:8080/usingRestTemplate
 curl localhost:8080/usingRestClient
 ```
