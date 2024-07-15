@@ -31,8 +31,8 @@ java -XX:CRaCCheckpointTo=checkpoint -jar build/libs/demo-0.0.1-SNAPSHOT.jar &
 
 waitForService localhost:8080/actuator
 curl localhost:8080/usingRestTemplate
-curl localhost:8080/usingRestClient
-curl localhost:8080/usingWebClient
+# curl localhost:8080/usingRestClient
+# curl localhost:8080/usingWebClient
 
 jcmd build/libs/demo-0.0.1-SNAPSHOT.jar JDK.checkpoint
 
