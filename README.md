@@ -4,18 +4,45 @@ The project consists of a Spring Boot app that provides three HTTP endpoints. Th
 
 To reproduce the problem in a Linux environment, clone the project from GitHub and run the test script `tests.bash`. The test script calls all three endpoints during the warmup, i.e., before the `jcmd myapp.jar JDK.checkpoint` command is executed.
 
-First ensure that a Java 21 JDK with CRaC support is used, e.g. by running a command like:
+First ensure that a Java 21 JDK is used, e.g. by running a command like:
+
+**On Linux**, use a Java 21 JDK with CRaC support:
 
 ```
 sdk use java 21.0.2.crac-zulu
 ```
 
-Commands to reproduce the problem:
+**On Windows or Mac**:
+
+```
+sdk use java 21.0.3.tem
+```
+
+Next, get the source code from GitHub and build:
 
 ```
 git clone https://github.com/magnus-larsson/ml-spring-http-client-crac-error-demo.git
 cd ml-spring-http-client-crac-error-demo
+./gradlew build
+```
 
+**On Linux**, run the following command to reproduce the problem:
+
+```
+./tests.bash
+```
+
+**On Windows or Mac**, we need to run the tests in Docker since a Linux OS is required by CRaC.
+
+Start a Linux container with the Azul JDK 21 CRaC, install `curl` and run the same test script to reproduce the problem:
+
+```
+docker run -it --rm  -v ${PWD}:/demo --privileged --name demo azul/zulu-openjdk:21-jdk-crac bash
+
+apt-get update
+apt-get install curl -y
+
+cd demo
 ./tests.bash
 ```
 
@@ -67,13 +94,43 @@ curl localhost:8080/usingRestClient
 
 Now, rerun the test script to create a checkpoint. The Spring Boot application can be restored from the checkpoint, and the endpoints can be called successfully. Run the following commands to verify:
 
+**On Linux**, run the follwoing commands:
+
 ```
 ./tests.bash
 
 java -XX:CRaCRestoreFrom=checkpoint
 
-curl localhost:8080/actuator
+curl localhost:8080/actuator/health
 curl localhost:8080/usingRestTemplate
 curl localhost:8080/usingRestClient
 curl localhost:8080/usingWebClient
+```
+
+**On Windows or Mac**, run the following commands using Docker:
+
+In the docker session:
+```
+./tests.bash
+
+java -XX:CRaCRestoreFrom=checkpoint
+```
+
+From another terminal, jump into the running Docker container and verify that the endpoints can be called successfully:
+
+```
+docker exec -it demo bash
+
+curl localhost:8080/actuator/health
+curl localhost:8080/usingRestTemplate
+curl localhost:8080/usingRestClient
+curl localhost:8080/usingWebClient
+
+exit
+```
+    
+Finally, remove the Docker container:
+
+```
+docker rm -f demo
 ```

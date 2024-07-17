@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 set -e
-set -x
+# set -x
 
 function testCurlCmd() {
   if $@; then return 0; else return 1; fi
 }
 
 function waitForService() {
-  url="curl $@ -ks -f -o /dev/null"
+  local url="curl $@ -ks -f -o /dev/null"
   echo -n "Wait for: $url... "
   sleep 3
   n=0
@@ -25,14 +25,30 @@ function waitForService() {
   echo "DONE, continues..."
 }
 
-./gradlew build
+function killJavaAppIfCheckpointFailed () {
+
+  # Give the checkpoint a chance to complete...
+  sleep 3
+
+  local pid=$(jcmd | grep demo-0.0.1-SNAPSHOT.jar | awk '{print $1}')
+
+  if [ "$pid" != "" ]; then
+    echo "Shutting down the Java app with PID $pid after a failed CRaC checkpoint"
+    kill -9 $pid
+  else
+    echo "No Java app found to shut down, CRaC checkpoint was successful"
+  fi
+}
+
+cd $(dirname $0)
 rm -rf checkpoint
+
 java -XX:CRaCCheckpointTo=checkpoint -jar build/libs/demo-0.0.1-SNAPSHOT.jar &
 
-waitForService localhost:8080/actuator
+waitForService localhost:8080/actuator/health
 curl localhost:8080/usingRestTemplate
 curl localhost:8080/usingRestClient
 curl localhost:8080/usingWebClient
 
 jcmd build/libs/demo-0.0.1-SNAPSHOT.jar JDK.checkpoint
-
+killJavaAppIfCheckpointFailed
