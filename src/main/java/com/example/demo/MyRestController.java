@@ -18,7 +18,6 @@ public class MyRestController {
 
 	@GetMapping("/usingRestTemplate")
 	String requestUsingRestTemplate() {
-		System.err.println("### v1: requestUsingRestTemplate() called.");
 		return restTemplate.getForObject("https://httpbin.org/uuid", String.class);
 	}
 }

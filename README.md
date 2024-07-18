@@ -1,8 +1,9 @@
 This project can reproduce problems by using RestTemplate and RestClient during warmup before creating a CRaC checkpoint using the `jcmd myapp.jar JDK.checkpoint` command.
 
-The project consists of a Spring Boot app that provides three HTTP endpoints. These endpoints use a RestTemplate, RestClient, and WebClient bean to send HTTP requests to `https://httpbin.org/uuid`. 
+The project consists of a Spring Boot app that provides one HTTP endpoint. This endpoint use a RestTemplate to send HTTP requests to `https://httpbin.org/uuid`. 
 
-To reproduce the problem in a Linux environment, clone the project from GitHub and run the test script `tests.bash`. The test script calls all three endpoints during the warmup, i.e., before the `jcmd myapp.jar JDK.checkpoint` command is executed.
+To reproduce the problem in a Linux environment, clone the project from GitHub and run the test script `tests.bash`. The test script calls the endpoint during the warmup, i.e., before the `jcmd myapp.jar JDK.checkpoint` command is executed.
+On Mac and Windows, a Docker container can be used to reporduce the problem as described below.
 
 First ensure that a Java 21 JDK is used, e.g. by running a command like:
 
@@ -23,6 +24,7 @@ Next, get the source code from GitHub and build:
 ```
 git clone https://github.com/magnus-larsson/ml-spring-http-client-crac-error-demo.git
 cd ml-spring-http-client-crac-error-demo
+git checkout RestTemplateBuilder
 ./gradlew build
 ```
 
@@ -49,50 +51,26 @@ cd demo
 This will result in open socket related errors like:
 
 ```
+2024-07-18T07:42:49.636Z  INFO 2789 --- [Attach Listener] jdk.crac                                 : Starting checkpoint
+2024-07-18T07:42:49.692Z  INFO 2789 --- [Attach Listener] o.s.c.support.DefaultLifecycleProcessor  : Restarting Spring-managed lifecycle beans after JVM restore
+2024-07-18T07:42:49.693Z  INFO 2789 --- [Attach Listener] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2024-07-18T07:42:49.694Z  INFO 2789 --- [Attach Listener] o.s.c.support.DefaultLifecycleProcessor  : Spring-managed lifecycle restart completed (restored JVM running for -1 ms)
 An exception during a checkpoint operation:
 jdk.internal.crac.mirror.CheckpointException
-	Suppressed: java.nio.channels.IllegalSelectorException
-		at java.base/sun.nio.ch.EPollSelectorImpl.beforeCheckpoint(EPollSelectorImpl.java:401)
-		at java.base/jdk.internal.crac.mirror.impl.AbstractContext.invokeBeforeCheckpoint(AbstractContext.java:43)
-		at java.base/jdk.internal.crac.mirror.impl.AbstractContext.beforeCheckpoint(AbstractContext.java:58)
-		at java.base/jdk.internal.crac.mirror.impl.BlockingOrderedContext.beforeCheckpoint(BlockingOrderedContext.java:64)
-		at java.base/jdk.internal.crac.mirror.impl.AbstractContext.invokeBeforeCheckpoint(AbstractContext.java:43)
-		at java.base/jdk.internal.crac.mirror.impl.AbstractContext.beforeCheckpoint(AbstractContext.java:58)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore1(Core.java:153)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore(Core.java:286)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestoreInternal(Core.java:299)
-	Suppressed: jdk.internal.crac.mirror.impl.CheckpointOpenSocketException: java.nio.channels.SocketChannel[connected local=/10.211.55.4:50404 remote=httpbin.org/18.214.17.35:443]
+	Suppressed: jdk.internal.crac.mirror.impl.CheckpointOpenSocketException: Socket[addr=httpbin.org/52.207.37.75,port=443,localport=37062]
 		at java.base/jdk.internal.crac.JDKSocketResourceBase.lambda$beforeCheckpoint$0(JDKSocketResourceBase.java:68)
 		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore1(Core.java:169)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore(Core.java:286)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestoreInternal(Core.java:299)
-	Suppressed: jdk.internal.crac.mirror.impl.CheckpointOpenSocketException: Socket[addr=httpbin.org/18.214.17.35,port=443,localport=50394]
-		at java.base/jdk.internal.crac.JDKSocketResourceBase.lambda$beforeCheckpoint$0(JDKSocketResourceBase.java:68)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore1(Core.java:169)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore(Core.java:286)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestoreInternal(Core.java:299)
-	Suppressed: jdk.internal.crac.mirror.impl.CheckpointOpenResourceException: FD fd=9 type=unknown path=anon_inode:[eventpoll]
-		at java.base/jdk.internal.crac.mirror.Core.translateJVMExceptions(Core.java:117)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore1(Core.java:188)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore(Core.java:286)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestoreInternal(Core.java:299)
-	Suppressed: jdk.internal.crac.mirror.impl.CheckpointOpenResourceException: FD fd=10 type=unknown path=anon_inode:[eventfd]
-		at java.base/jdk.internal.crac.mirror.Core.translateJVMExceptions(Core.java:117)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore1(Core.java:188)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore(Core.java:286)
-		at java.base/jdk.internal.crac.mirror.Core.checkpointRestoreInternal(Core.java:299)
+		at java.base/jdk.internal.crac.mirror.Core.checkpointRestore(Core.java:294)
+		at java.base/jdk.internal.crac.mirror.Core.checkpointRestoreInternal(Core.java:307)
 ```
 
-To avoid these errors, remove the following calls to the RestTemplate and RestClient endpoints in `tests.bash`:
+To avoid this error, remove the following call to the RestTemplate endpoint in `tests.bash`:
 
 ```
 curl localhost:8080/usingRestTemplate
-curl localhost:8080/usingRestClient
 ```
 
-> **Note:** The WebClient endpoint can still be used during the warmup.
-
-Now, rerun the test script to create a checkpoint. The Spring Boot application can be restored from the checkpoint, and the endpoints can be called successfully. Run the following commands to verify:
+Now, rerun the test script to create a checkpoint. The Spring Boot application can be restored from the checkpoint, and the endpoint can be called successfully. Run the following commands to verify:
 
 **On Linux**, run the follwoing commands:
 
@@ -103,8 +81,6 @@ java -XX:CRaCRestoreFrom=checkpoint
 
 curl localhost:8080/actuator/health
 curl localhost:8080/usingRestTemplate
-curl localhost:8080/usingRestClient
-curl localhost:8080/usingWebClient
 ```
 
 **On Windows or Mac**, run the following commands using Docker:
@@ -116,15 +92,13 @@ In the docker session:
 java -XX:CRaCRestoreFrom=checkpoint
 ```
 
-From another terminal, jump into the running Docker container and verify that the endpoints can be called successfully:
+From another terminal, jump into the running Docker container and verify that the endpoint can be called successfully:
 
 ```
 docker exec -it demo bash
 
 curl localhost:8080/actuator/health
 curl localhost:8080/usingRestTemplate
-curl localhost:8080/usingRestClient
-curl localhost:8080/usingWebClient
 
 exit
 ```
