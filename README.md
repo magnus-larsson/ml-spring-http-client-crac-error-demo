@@ -15,7 +15,7 @@ sdk use java 21.0.2.crac-zulu
 **On Windows or Mac**:
 
 ```
-sdk use java 21.0.3.tem
+sdk use java 21.0.3-tem
 ```
 
 Next, get the source code from GitHub and build:
