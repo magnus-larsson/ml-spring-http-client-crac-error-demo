@@ -9,11 +9,11 @@ import org.springframework.web.client.RestTemplate;
 @RestController
 @RequestMapping("/")
 public class MyRestController {
-    
+
 	private final RestTemplate restTemplate;
 
-	public MyRestController(RestTemplateBuilder restTemplateBuilder) {
-		this.restTemplate = restTemplateBuilder.build();
+	public MyRestController(RestTemplate restTemplate) {
+		this.restTemplate = restTemplate;
 	}
 
 	@GetMapping("/usingRestTemplate")

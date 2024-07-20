@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.3.0'
-	id 'io.spring.dependency-management' version '1.1.5'
+	id 'org.springframework.boot' version '3.3.2'
+	id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'com.example'
@@ -21,14 +21,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	// implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-
 	implementation 'org.crac:crac'
+	implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
 
-	/*
-    implementation 'org.springframework.cloud:spring-cloud-starter'
-    implementation 'org.apache.httpcomponents.client5:httpclient5'
-    implementation 'org.apache.httpcomponents.client5:httpclient5-fluent'
-	*/
+	// To avoid the following error message on Apple silicon (for details, see https://github.com/netty/netty/issues/11693):
+	// Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS.
+	implementation group: 'io.netty', name: 'netty-resolver-dns-native-macos', classifier: 'osx-aarch_64'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
