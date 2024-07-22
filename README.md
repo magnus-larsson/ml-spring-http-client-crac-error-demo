@@ -3,7 +3,7 @@ Without a proper configuration, the RestTemplate bean will cause an error during
 
 > **Note:** See the main branch for how to reproduce the open socket error during CRaC checkpoint creation.
 
-The project consists of a Spring Boot app that provides one HTTP endpoint. This endpoint use a RestTemplate bean to send HTTP requests to `https://httpbin.org/uuid`. 
+The project consists of a Spring Boot app that provides a HTTP endpoint which use a RestTemplate bean to send HTTP requests to `https://httpbin.org/uuid`. 
 
 To try out the working solution in a Linux environment, clone the project from GitHub and run the test script `tests.bash`. The test script calls the endpoint during the warmup, i.e., before the `jcmd myapp.jar JDK.checkpoint` command is executed.
 On Mac and Windows, a Docker container can be used as described below.
@@ -70,8 +70,6 @@ curl localhost:8080/usingRestTemplate
 
 In the docker session:
 ```
-./tests.bash
-
 java -XX:CRaCRestoreFrom=checkpoint
 ```
 
